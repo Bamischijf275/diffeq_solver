@@ -21,7 +21,7 @@ T = 20
 Xtot = 100
 c = 5 #speed of advection
 
-v=0 #artificial dissipation included if v!=0
+v=1 #artificial dissipation included if v!=0
 N = int(Xtot/dx) #number of mesh points (will always assume x[0,100])
 x = np.arange(0,Xtot,dx)
 
@@ -29,7 +29,7 @@ x = np.arange(0,Xtot,dx)
 u = np.zeros(int(1/10 * N))
 u = np.append(u,np.ones(int(1/10 * N)))
 u = np.append(u,np.zeros(int(8/10 * N)))
-u = np.sin(2*math.pi*x*(1/100))
+#u = np.sin(2*math.pi*x*(1/100))
 
 I = np.identity(N)
 
@@ -88,14 +88,22 @@ line1, = ax.plot(x, u)
 
 u_vec = []
 u_vec.append(u)
-def time_march(u,A_centr,A_visc):
+def explicit_euler(u,A_centr,A_visc):
     u = np.matmul((I + dt * (A_visc + A_centr)), u)
     u_vec.append(u)
+    return u
+
+def implicit_euler(u,A_centr,A_visc):
+    lh = (I - dt*(A_visc + A_centr)) #left handside equation
+    rh = u #right hand side equation
+    u_new = linalg.spsolve(lh,rh)
+    u = u_new
+    u_vec.append(u_new)
+    return u
 
 #Save the solutions as a vector so it can be animated and saved
 for h in np.arange(0,T,dt):
-    u = np.matmul((I + dt * (A_visc + A_centr)), u)
-    u_vec.append(u)
+    u = explicit_euler(u,A_centr,A_visc)
 print(u_vec)
 
 
